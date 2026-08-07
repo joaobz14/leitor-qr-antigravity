@@ -1,0 +1,16 @@
+{
+  "name": "catalogo-qr-antigravity",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/javascript/*.test.js",
+    "vendor": "node tools/copy_qrcode_vendor.mjs",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "qrcode-generator": "2.0.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1"
+  }
+}

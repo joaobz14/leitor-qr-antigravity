@@ -1,0 +1,24 @@
+# Ambientes e Dependências
+.venv/
+node_modules/
+.pytest_cache/
+.pytest-runs/
+test-results/
+playwright-report/
+.superpowers/
+.playwright-cli/
+
+# Dados Locais e Sensores Sensíveis (NUNCA COMITAR)
+dados-locais/
+backups/
+*.csv
+*.env
+*.key
+*.pem
+*.log
+
+# Sistema Operacional / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

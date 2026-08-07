@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'"
+    >
+    <title>Catálogo QR • Antigravity Edition</title>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./assets/css/app.css">
+  </head>
+  <body>
+    <!-- Background Animated Grid / Orbs -->
+    <div class="bg-glow-orb primary-orb" aria-hidden="true"></div>
+    <div class="bg-glow-orb secondary-orb" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <div class="header-container">
+        <div class="brand">
+          <div class="brand-logo" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+          </div>
+          <div>
+            <span class="brand-eyebrow">Plataforma de Consulta</span>
+            <h1 class="brand-title">Catálogo QR <span class="badge-pro">PRO</span></h1>
+          </div>
+        </div>
+
+        <div class="header-controls">
+          <!-- Theme Switcher -->
+          <button id="theme-toggle" class="icon-button" type="button" aria-label="Alternar Tema">
+            <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+
+          <!-- Camera Scanner Button (Visible when unlocked) -->
+          <button id="btn-open-camera" class="secondary-button icon-text-button" type="button" hidden>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+            <span>Escanear Câmera</span>
+          </button>
+
+          <button id="lock-button" class="secondary-button icon-text-button" type="button" hidden>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <span>Bloquear</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="app-content" class="main-container">
+      <!-- TELA 1: DESBLOQUEIO -->
+      <section id="locked-screen" class="glass-card unlock-card">
+        <div class="unlock-header">
+          <div class="shield-badge">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </div>
+          <h2>Desbloquear Catálogo Protegido</h2>
+          <p id="locked-status" class="supporting-text">Carregando lote criptografado…</p>
+        </div>
+
+        <form id="unlock-form" class="unlock-form" autocomplete="off" hidden>
+          <div class="input-field-group">
+            <label for="passphrase">Frase de Acesso Criptográfica</label>
+            <div class="password-input-wrapper">
+              <input
+                id="passphrase"
+                name="passphrase"
+                type="password"
+                placeholder="Insira a frase secreta (mín. 16 caracteres)"
+                autocomplete="off"
+                minlength="16"
+                required
+              >
+              <button id="btn-toggle-password" class="icon-button inline-eye" type="button" aria-label="Mostrar Senha">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <label class="checkbox-container">
+            <input id="remember-key" name="remember-key" type="checkbox">
+            <span class="checkmark"></span>
+            <span class="checkbox-label">Manter chave salva neste navegador</span>
+          </label>
+
+          <button id="unlock-button" class="primary-button glossy-btn" type="submit">
+            <span>Desbloquear Catálogo</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+        </form>
+
+        <div id="unlock-message" class="status-banner" role="status" aria-live="polite" hidden></div>
+        <button id="btn-clear-memory" class="secondary-button btn-reset-link" type="button" style="margin-top: 1rem; width: 100%; font-size: 0.8rem;">
+          🧹 Limpar Chave Memorizada Neste Navegador
+        </button>
+
+      </section>
+
+      <!-- TELA 2: BUSCA & EXIBIÇÃO -->
+      <section id="catalog-screen" class="catalog-section" hidden>
+        <!-- BARRA DE PESQUISA & CONTROLES -->
+        <div class="search-hero glass-card">
+          <div class="search-header-row">
+            <div>
+              <h2 class="search-title">Catálogo de Produtos</h2>
+              <p id="catalog-count-meta" class="catalog-meta-text">Carregando itens...</p>
+            </div>
+            <div class="shortcut-tip">
+              <kbd>Ctrl</kbd> + <kbd>K</kbd> para buscar
+            </div>
+          </div>
+
+          <div class="search-input-wrapper">
+            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              id="search-input"
+              type="search"
+              placeholder="Busque por nome, SKU, variação, voltagem ou categoria..."
+              autocomplete="off"
+              spellcheck="false"
+            >
+            <button id="clear-search-btn" class="icon-button clear-btn" type="button" aria-label="Limpar busca" hidden>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+
+          <!-- DASHBOARD CONTAINER -->
+          <div id="dashboard-container" class="dashboard-wrapper"></div>
+
+          <!-- CATEGORY FILTERS -->
+          <div id="category-pills" class="category-pills-bar">
+            <!-- Pills geradas dinamicamente via JS -->
+          </div>
+        </div>
+
+        <!-- GRID DE PRODUTOS -->
+        <div id="products-grid" class="products-grid">
+          <!-- Cards gerados dinamicamente via JS -->
+        </div>
+
+        <!-- STATE VAZIO -->
+        <div id="empty-state" class="empty-state glass-card" hidden>
+          <div class="empty-icon">🔍</div>
+          <h3>Nenhum produto encontrado</h3>
+          <p>Tente ajustar o termo de pesquisa ou remover os filtros de categoria.</p>
+          <button id="reset-filters-btn" class="secondary-button" type="button">Limpar Filtros</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- MODAL 1: VISUALIZADOR HD & PROJEÇÃO DE QR CODE -->
+    <dialog id="qr-modal" class="custom-dialog">
+      <div class="dialog-content glass-card">
+        <button id="close-qr-modal" class="icon-button dialog-close" type="button" aria-label="Fechar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
+        <div id="qr-modal-body" class="qr-modal-body">
+          <!-- Conteúdo do modal de QR via JS -->
+        </div>
+      </div>
+    </dialog>
+
+    <!-- MODAL 2: SCANNER DE CÂMERA EM TEMPO REAL -->
+    <dialog id="camera-modal" class="custom-dialog">
+      <div class="dialog-content glass-card camera-dialog-content">
+        <div class="camera-dialog-header">
+          <h3>Escanear QR Code com Câmera</h3>
+          <button id="close-camera-modal" class="icon-button dialog-close" type="button" aria-label="Fechar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="video-container">
+          <video id="camera-video" playsinline></video>
+          <div class="camera-overlay">
+            <div class="scan-frame"></div>
+          </div>
+        </div>
+        <p id="camera-status" class="supporting-text center-text">Posicione o QR Code no centro da tela...</p>
+      </div>
+    </dialog>
+
+    <!-- FLOATING BATCH PRINT BAR -->
+    <div id="batch-bar" class="batch-bar glass-card" hidden>
+      <span id="batch-count-text">0 itens selecionados para impressão</span>
+      <div class="batch-actions">
+        <select id="batch-label-format" class="secondary-select" aria-label="Formato de Impressão">
+          <option value="thermal-100x150" selected>Térmica 10x15cm (Zebra Standard)</option>
+          <option value="thermal-50x30">Térmica 50x30mm (Gôndola)</option>
+          <option value="thermal-100x50">Térmica 100x50mm (Caixas)</option>
+          <option value="a4-sheet">Folha A4 Padrão</option>
+        </select>
+
+        <button id="btn-print-batch" class="primary-button glossy-btn" type="button">Imprimir Lote</button>
+        <button id="btn-clear-batch" class="secondary-button" type="button">Limpar Seleção</button>
+        <button id="close-batch-bar" class="icon-button" type="button" aria-label="Fechar barra de lote">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+
+
+    <!-- CARREGADOR DE SCRIPT VENDOR & MODULOS -->
+    <script src="./assets/vendor/qrcode.js"></script>
+    <script type="module" src="./assets/js/app.js"></script>
+  </body>
+</html>
