@@ -47,6 +47,15 @@ export function filterProducts(query = "") {
   // Filtrar por Termo de Busca
   if (query.trim()) {
     const q = query.toLowerCase().trim();
+
+    // REGRA DE MATCH EXATO DE SKU:
+    // Se a busca for exatamente igual a um SKU existente (ex: "JL1"), exibe apenas o produto com SKU "JL1"
+    const exactSkuMatches = filtered.filter(p => (p.sku || "").toLowerCase().trim() === q);
+    if (exactSkuMatches.length > 0) {
+      return exactSkuMatches;
+    }
+
+    // Se for uma busca parcial (ex: "JL"), busca em todos os campos normalmente
     filtered = filtered.filter(p => {
       const name = (p.nome || "").toLowerCase();
       const sku = (p.sku || "").toLowerCase();
@@ -60,3 +69,4 @@ export function filterProducts(query = "") {
 
   return filtered;
 }
+
