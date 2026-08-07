@@ -227,6 +227,63 @@ def encrypt_catalog(products, passphrase):
         "ciphertext": base64.b64encode(ciphertext).decode('utf-8')
     }
 
+PIN_CONFIG_FILE = DADOS_LOCAIS_DIR / ".pin_config.json"
+
+def get_or_create_passphrase():
+    if PIN_CONFIG_FILE.exists():
+        try:
+            pin_data = json.loads(PIN_CONFIG_FILE.read_text(encoding="utf-8"))
+            pin = getpass.getpass("\n🔑 Digite seu PIN rápido (ex: 1234): ").strip()
+
+            salt = base64.b64decode(pin_data["salt"])
+            iv = base64.b64decode(pin_data["iv"])
+            ciphertext = base64.b64decode(pin_data["enc_passphrase"])
+
+            pin_key = hashlib.pbkdf2_hmac('sha256', pin.encode('utf-8'), salt, ITERATIONS, dklen=KEY_SIZE)
+            aesgcm = AESGCM(pin_key)
+            passphrase_bytes = aesgcm.decrypt(iv, ciphertext, None)
+            passphrase = passphrase_bytes.decode('utf-8')
+            print("✅ PIN validado com sucesso!")
+            return passphrase
+        except Exception:
+            print("❌ PIN incorreto.")
+            sys.exit(1)
+
+    print("\n💡 DICA: Você pode cadastrar um PIN rápido (ex: 1234) para não ter que digitar a senha completa nas próximas atualizações.")
+    use_pin = input("Deseja cadastrar um PIN rápido agora? (S/N): ").strip().lower()
+
+    passphrase = getpass.getpass("\nDigite a frase de acesso completa (mínimo 16 caracteres): ").strip()
+    if len(passphrase) < 16:
+        print("❌ A frase de acesso deve conter pelo menos 16 caracteres.")
+        sys.exit(1)
+
+    confirm_passphrase = getpass.getpass("Confirme a frase de acesso completa: ").strip()
+    if passphrase != confirm_passphrase:
+        print("❌ As frases de acesso não coincidem.")
+        sys.exit(1)
+
+    if use_pin in ["s", "sim", "y", "yes"]:
+        new_pin = getpass.getpass("\nDigite o seu novo PIN numérico (ex: 1234): ").strip()
+        confirm_pin = getpass.getpass("Confirme o seu PIN numérico: ").strip()
+        if new_pin != confirm_pin or len(new_pin) < 4:
+            print("⚠️ PIN inválido ou confirmação divergente. O PIN não foi salvo.")
+        else:
+            salt = os.urandom(16)
+            iv = os.urandom(12)
+            pin_key = hashlib.pbkdf2_hmac('sha256', new_pin.encode('utf-8'), salt, ITERATIONS, dklen=KEY_SIZE)
+            aesgcm = AESGCM(pin_key)
+            ciphertext = aesgcm.encrypt(iv, passphrase.encode('utf-8'), None)
+
+            pin_payload = {
+                "salt": base64.b64encode(salt).decode('utf-8'),
+                "iv": base64.b64encode(iv).decode('utf-8'),
+                "enc_passphrase": base64.b64encode(ciphertext).decode('utf-8')
+            }
+            PIN_CONFIG_FILE.write_text(json.dumps(pin_payload, indent=2), encoding="utf-8")
+            print(f"🎉 PIN rápido salvo localmente! Nas próximas atualizações, você precisará apenas do seu PIN '{new_pin}'.")
+
+    return passphrase
+
 def main():
     print("=== Antigravity UpSeller ERP Catalog Encryptor ===")
     filepath, file_type = find_data_file()
@@ -239,15 +296,7 @@ def main():
         print("❌ Nenhum produto válido encontrado na planilha.")
         sys.exit(1)
 
-    passphrase = getpass.getpass("\nDigite a frase de acesso (mínimo 16 caracteres): ")
-    if len(passphrase) < 16:
-        print("❌ A frase de acesso deve conter pelo menos 16 caracteres.")
-        sys.exit(1)
-
-    confirm_passphrase = getpass.getpass("Confirme a frase de acesso: ")
-    if passphrase != confirm_passphrase:
-        print("❌ As frases de acesso não coincidem.")
-        sys.exit(1)
+    passphrase = get_or_create_passphrase()
 
     encrypted_data = encrypt_catalog(products, passphrase)
 
@@ -256,6 +305,7 @@ def main():
         json.dump(encrypted_data, f, indent=2)
 
     print(f"\n🎉 Catálogo criptografado salvo com sucesso em: {OUTPUT_PATH}")
+
 
 if __name__ == "__main__":
     main()
