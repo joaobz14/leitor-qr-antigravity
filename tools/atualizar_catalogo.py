@@ -53,24 +53,37 @@ def match_column(header, target_field):
     possible_names = COLUMN_MAPPINGS.get(target_field, [target_field])
     return normalized in possible_names
 
+from datetime import datetime
+
 def find_data_file():
     if not DADOS_LOCAIS_DIR.exists():
         DADOS_LOCAIS_DIR.mkdir(parents=True, exist_ok=True)
         print(f"📁 Diretório {DADOS_LOCAIS_DIR} criado. Adicione sua planilha do UpSeller (.xlsx ou .csv) nesta pasta.")
         sys.exit(1)
 
-    # Procurar primeiro por arquivos Excel .xlsx do UpSeller
-    xlsx_files = list(DADOS_LOCAIS_DIR.glob("*.xlsx"))
-    if xlsx_files:
-        return xlsx_files[0], "xlsx"
+    # Coletar todos os arquivos .xlsx e .csv ignorando temporários do Excel (~$)
+    all_files = []
+    for ext in ["*.xlsx", "*.csv"]:
+        for p in DADOS_LOCAIS_DIR.glob(ext):
+            if not p.name.startswith("~$"):
+                all_files.append((p, "xlsx" if p.suffix.lower() == ".xlsx" else "csv"))
 
-    # Procurar por arquivos .csv
-    csv_files = list(DADOS_LOCAIS_DIR.glob("*.csv"))
-    if csv_files:
-        return csv_files[0], "csv"
+    if not all_files:
+        print(f"❌ Nenhum arquivo .xlsx ou .csv válido encontrado em '{DADOS_LOCAIS_DIR}'.")
+        sys.exit(1)
 
-    print(f"❌ Nenhum arquivo .xlsx ou .csv encontrado em '{DADOS_LOCAIS_DIR}'. Exportes a planilha do UpSeller para essa pasta.")
-    sys.exit(1)
+    # Ordenar por data de modificação mais recente (mtime)
+    all_files.sort(key=lambda x: x[0].stat().st_mtime, reverse=True)
+    newest_file, file_type = all_files[0]
+
+    mtime_str = datetime.fromtimestamp(newest_file.stat().st_mtime).strftime("%d/%m/%Y %H:%M:%S")
+    print(f"📌 Selecionado a planilha mais recente: {newest_file.name} (Modificado em: {mtime_str})")
+
+    if len(all_files) > 1:
+        print(f"ℹ️ {len(all_files) - 1} arquivo(s) antigo(s) na pasta dados-locais/ foram ignorados automaticamente.")
+
+    return newest_file, file_type
+
 
 def parse_bool(val):
     if isinstance(val, (int, float)):
