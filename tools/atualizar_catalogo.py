@@ -227,7 +227,7 @@ def encrypt_catalog(products, passphrase):
         "ciphertext": base64.b64encode(ciphertext).decode('utf-8')
     }
 
-PIN_CONFIG_FILE = DADOS_LOCAIS_DIR / ".pin_config.json"
+PIN_CONFIG_FILE = Path(__file__).resolve().parent.parent / "dados-locais" / ".pin_config.json"
 
 def get_or_create_passphrase():
     if PIN_CONFIG_FILE.exists():
@@ -246,11 +246,14 @@ def get_or_create_passphrase():
             print("✅ PIN validado com sucesso!")
             return passphrase
         except Exception:
-            print("❌ PIN incorreto.")
+            print("❌ PIN incorreto ou arquivo de configuração corrompido.")
+            if PIN_CONFIG_FILE.exists():
+                PIN_CONFIG_FILE.unlink()
             sys.exit(1)
 
     print("\n💡 DICA: Você pode cadastrar um PIN rápido (ex: 1234) para não ter que digitar a senha completa nas próximas atualizações.")
-    use_pin = input("Deseja cadastrar um PIN rápido agora? (S/N): ").strip().lower()
+    use_pin_input = input("Deseja cadastrar um PIN rápido agora? (S/N) [Padrão: S]: ").strip().lower()
+    use_pin = use_pin_input in ["", "s", "sim", "y", "yes"]
 
     passphrase = getpass.getpass("\nDigite a frase de acesso completa (mínimo 16 caracteres): ").strip()
     if len(passphrase) < 16:
@@ -262,10 +265,11 @@ def get_or_create_passphrase():
         print("❌ As frases de acesso não coincidem.")
         sys.exit(1)
 
-    if use_pin in ["s", "sim", "y", "yes"]:
+    if use_pin:
         new_pin = getpass.getpass("\nDigite o seu novo PIN numérico (ex: 1234): ").strip()
         confirm_pin = getpass.getpass("Confirme o seu PIN numérico: ").strip()
-        if new_pin != confirm_pin or len(new_pin) < 4:
+        
+        if not new_pin or new_pin != confirm_pin:
             print("⚠️ PIN inválido ou confirmação divergente. O PIN não foi salvo.")
         else:
             salt = os.urandom(16)
@@ -279,10 +283,12 @@ def get_or_create_passphrase():
                 "iv": base64.b64encode(iv).decode('utf-8'),
                 "enc_passphrase": base64.b64encode(ciphertext).decode('utf-8')
             }
+            PIN_CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
             PIN_CONFIG_FILE.write_text(json.dumps(pin_payload, indent=2), encoding="utf-8")
-            print(f"🎉 PIN rápido salvo localmente! Nas próximas atualizações, você precisará apenas do seu PIN '{new_pin}'.")
+            print(f"🎉 PIN rápido salvo localmente em '{PIN_CONFIG_FILE.name}'! Nas próximas atualizações, você precisará apenas do seu PIN.")
 
     return passphrase
+
 
 def main():
     print("=== Antigravity UpSeller ERP Catalog Encryptor ===")
