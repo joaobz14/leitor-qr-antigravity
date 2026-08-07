@@ -11,9 +11,17 @@ if exist ".venv\Scripts\python.exe" (
 
 %PYTHON_CMD% -m tools.gui_trocar_senha
 if %errorlevel% neq 0 (
-    echo [ERRO] Falha ao trocar senha.
-    pause
     exit /b 1
 )
 
 %PYTHON_CMD% -m tools.repository_safety
+if %errorlevel% neq 0 (
+    pause
+    exit /b 1
+)
+
+git add site/data/catalogo.enc.json
+git commit -m "Atualizacao de senha do catalogo"
+git push origin master
+
+pause
