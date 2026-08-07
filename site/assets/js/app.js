@@ -102,6 +102,34 @@ async function initApp() {
     }
   });
 
+  // Modal de Compartilhamento do App (QR Code para abrir em outro celular)
+  const shareBtn = document.getElementById("btn-share-app");
+  const shareModal = document.getElementById("share-modal");
+  const closeShareBtn = document.getElementById("close-share-modal");
+  const shareQrDisplay = document.getElementById("share-qr-display");
+  const shareUrlText = document.getElementById("share-url-text");
+
+  shareBtn?.addEventListener("click", () => {
+    const currentUrl = window.location.href.includes("github.io") 
+      ? window.location.href 
+      : "https://joaobz14.github.io/leitor-qr-antigravity/";
+
+    if (shareQrDisplay && typeof generateQRCodeSVG === "function") {
+      shareQrDisplay.innerHTML = generateQRCodeSVG(currentUrl);
+    }
+    if (shareUrlText) {
+      shareUrlText.textContent = currentUrl;
+    }
+    if (typeof shareModal?.showModal === "function") {
+      shareModal.showModal();
+    }
+  });
+
+  closeShareBtn?.addEventListener("click", () => {
+    shareModal?.close();
+  });
+
+
 
   // Setup de Busca
   const searchInput = document.getElementById("search-input");

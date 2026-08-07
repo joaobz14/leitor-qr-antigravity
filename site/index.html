@@ -38,8 +38,18 @@
         </div>
 
         <div class="header-controls">
+          <!-- Share App QR Code Button -->
+          <button id="btn-share-app" class="secondary-button icon-text-button" type="button" title="Abrir em outro celular">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+              <line x1="12" y1="18" x2="12.01" y2="18"></line>
+            </svg>
+            <span>QR do App</span>
+          </button>
+
           <!-- Theme Switcher -->
           <button id="theme-toggle" class="icon-button" type="button" aria-label="Alternar Tema">
+
             <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="5"></circle>
               <line x1="12" y1="1" x2="12" y2="3"></line>
@@ -230,6 +240,26 @@
         <p id="camera-status" class="supporting-text center-text">Posicione o QR Code no centro da tela...</p>
       </div>
     </dialog>
+
+    <!-- MODAL 3: COMPARTILHAR APP VIA QR CODE -->
+    <dialog id="share-modal" class="custom-dialog">
+      <div class="dialog-content glass-card center-text">
+        <button id="close-share-modal" class="icon-button dialog-close" type="button" aria-label="Fechar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
+        <h3 style="margin-bottom: 0.5rem;">📱 Abrir App em Outro Celular</h3>
+        <p class="supporting-text">Aponte a câmera do seu celular para o QR Code abaixo para abrir o catálogo instantaneamente:</p>
+
+        <div id="share-qr-display" class="qr-hd-display" style="margin: 1.5rem auto; max-width: 240px; padding: 1rem; background: #ffffff; border-radius: 16px;"></div>
+
+        <p id="share-url-text" class="supporting-text" style="word-break: break-all; font-family: monospace; font-size: 0.85rem; background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 8px; color: #60a5fa;"></p>
+      </div>
+    </dialog>
+
 
     <!-- FLOATING BATCH PRINT BAR -->
     <div id="batch-bar" class="batch-bar glass-card" hidden>
