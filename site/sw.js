@@ -1,4 +1,5 @@
-const CACHE_NAME = 'catalogo-qr-antigravity-v7';
+const CACHE_NAME = 'catalogo-qr-antigravity-v8';
+
 
 
 
