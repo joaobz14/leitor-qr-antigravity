@@ -1,13 +1,8 @@
 @echo off
-chcp 65001 > nul
 cd /d "%~dp0.."
 
-set "PYTHON_CMD="
-if exist ".venv\Scripts\python.exe" (
-    set "PYTHON_CMD=.\.venv\Scripts\python.exe"
-) else (
-    set "PYTHON_CMD=python"
-)
+set "PYTHON_CMD=python"
+if exist ".venv\Scripts\python.exe" set "PYTHON_CMD=.\.venv\Scripts\python.exe"
 
 %PYTHON_CMD% -m tools.gui_trocar_senha
 if %errorlevel% neq 0 (
@@ -23,5 +18,4 @@ if %errorlevel% neq 0 (
 git add site/data/catalogo.enc.json
 git commit -m "Atualizacao de senha do catalogo"
 git push origin master
-
 pause

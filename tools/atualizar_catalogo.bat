@@ -1,13 +1,8 @@
 @echo off
-chcp 65001 > nul
 cd /d "%~dp0.."
 
-set "PYTHON_CMD="
-if exist ".venv\Scripts\python.exe" (
-    set "PYTHON_CMD=.\.venv\Scripts\python.exe"
-) else (
-    set "PYTHON_CMD=python"
-)
+set "PYTHON_CMD=python"
+if exist ".venv\Scripts\python.exe" set "PYTHON_CMD=.\.venv\Scripts\python.exe"
 
 echo ==========================================================
 echo   [1/3] Criptografando planilha de dados do UpSeller...
@@ -38,14 +33,16 @@ git add site/data/catalogo.enc.json
 git commit -m "Atualizacao automatica do catalogo"
 git push origin master
 
-if %errorlevel% equ 0 (
+if %errorlevel% neq 0 (
     echo.
-    echo ==========================================================
-    echo   🎉 SUCESSO! Catálogo atualizado e publicado no GitHub!
-    echo   Acesse: https://joaobz14.github.io/leitor-qr-antigravity/
-    echo ==========================================================
-) else (
-    echo [AVISO] O catalogo foi criptografado, mas houve falha ao enviar pro Git.
+    echo [AVISO] O catalogo foi criptografado, mas houve falha no envio ao Git.
+    pause
+    exit /b 1
 )
 
+echo.
+echo ==========================================================
+echo   SUCESSO! Catalogo atualizado e publicado no GitHub!
+echo   Acesse: https://joaobz14.github.io/leitor-qr-antigravity/
+echo ==========================================================
 pause
