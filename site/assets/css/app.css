@@ -791,6 +791,30 @@ body {
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
 }
 
+/* Share QR Code Modal Styling */
+#share-qr-display {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #ffffff !important;
+  padding: 1.25rem !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+#share-qr-display svg {
+  width: 100% !important;
+  height: auto !important;
+  max-width: 220px !important;
+  display: block !important;
+}
+
+.icon-text-button {
+  white-space: nowrap !important;
+  font-size: 0.85rem;
+  padding: 0.6rem 1rem;
+}
+
 /* Responsive Rules */
 @media (max-width: 640px) {
   .header-container {
@@ -799,7 +823,11 @@ body {
     align-items: stretch;
   }
   .header-controls {
-    justify-content: space-between;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: flex-start;
   }
   .search-header-row {
     flex-direction: column;
@@ -809,3 +837,4 @@ body {
     display: none;
   }
 }
+

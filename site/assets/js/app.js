@@ -114,8 +114,8 @@ async function initApp() {
       ? window.location.href 
       : "https://joaobz14.github.io/leitor-qr-antigravity/";
 
-    if (shareQrDisplay && typeof generateQRCodeSVG === "function") {
-      shareQrDisplay.innerHTML = generateQRCodeSVG(currentUrl);
+    if (shareQrDisplay && typeof generateQRSvg === "function") {
+      shareQrDisplay.innerHTML = generateQRSvg(currentUrl, 8, 2);
     }
     if (shareUrlText) {
       shareUrlText.textContent = currentUrl;
@@ -124,6 +124,7 @@ async function initApp() {
       shareModal.showModal();
     }
   });
+
 
   closeShareBtn?.addEventListener("click", () => {
     shareModal?.close();
