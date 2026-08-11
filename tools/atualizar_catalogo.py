@@ -201,23 +201,32 @@ def get_or_create_passphrase():
     if PIN_CONFIG_FILE.exists():
         try:
             pin_data = json.loads(PIN_CONFIG_FILE.read_text(encoding="utf-8"))
-            pin = getpass.getpass("\n🔑 Digite seu PIN rápido (ex: 1234): ").strip()
-
             salt = base64.b64decode(pin_data["salt"])
             iv = base64.b64decode(pin_data["iv"])
             ciphertext = base64.b64decode(pin_data["enc_passphrase"])
-
-            pin_key = hashlib.pbkdf2_hmac('sha256', pin.encode('utf-8'), salt, ITERATIONS, dklen=KEY_SIZE)
-            aesgcm = AESGCM(pin_key)
-            passphrase_bytes = aesgcm.decrypt(iv, ciphertext, None)
-            passphrase = passphrase_bytes.decode('utf-8')
-            print("✅ PIN validado com sucesso!")
-            return passphrase
         except Exception:
-            print("❌ PIN incorreto ou arquivo de configuração corrompido.")
+            print("⚠️ Arquivo de configuração de PIN corrompido. Removendo arquivo inválido...")
             if PIN_CONFIG_FILE.exists():
                 PIN_CONFIG_FILE.unlink()
-            sys.exit(1)
+
+        if PIN_CONFIG_FILE.exists():
+            max_attempts = 3
+            for attempt in range(1, max_attempts + 1):
+                try:
+                    pin = getpass.getpass(f"\n🔑 Digite seu PIN rápido (Tentativa {attempt}/{max_attempts}): ").strip()
+                    pin_key = hashlib.pbkdf2_hmac('sha256', pin.encode('utf-8'), salt, ITERATIONS, dklen=KEY_SIZE)
+                    aesgcm = AESGCM(pin_key)
+                    passphrase_bytes = aesgcm.decrypt(iv, ciphertext, None)
+                    passphrase = passphrase_bytes.decode('utf-8')
+                    print("✅ PIN validado com sucesso!")
+                    return passphrase
+                except Exception:
+                    if attempt < max_attempts:
+                        print("❌ PIN incorreto. Tente novamente.")
+                    else:
+                        print("❌ Número máximo de tentativas excedido. O seu PIN continua salvo.")
+                        sys.exit(1)
+
 
     print("\n💡 DICA: Você pode cadastrar um PIN rápido (ex: 1234) para não ter que digitar a senha completa nas próximas atualizações.")
     use_pin_input = input("Deseja cadastrar um PIN rápido agora? (S/N) [Padrão: S]: ").strip().lower()
