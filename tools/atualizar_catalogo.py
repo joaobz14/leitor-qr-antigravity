@@ -12,6 +12,11 @@ import getpass
 import hashlib
 from pathlib import Path
 
+# Garantir codificação UTF-8 no console Windows
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+
+
 try:
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 except ImportError:
@@ -55,13 +60,12 @@ def match_column(header, target_field):
 
 from datetime import datetime
 
-def find_data_file():
+def get_all_data_files():
     if not DADOS_LOCAIS_DIR.exists():
         DADOS_LOCAIS_DIR.mkdir(parents=True, exist_ok=True)
-        print(f"📁 Diretório {DADOS_LOCAIS_DIR} criado. Adicione sua planilha do UpSeller (.xlsx ou .csv) nesta pasta.")
+        print(f"📁 Diretório {DADOS_LOCAIS_DIR} criado. Adicione suas planilhas do UpSeller (.xlsx ou .csv) nesta pasta.")
         sys.exit(1)
 
-    # Coletar todos os arquivos .xlsx e .csv ignorando temporários do Excel (~$)
     all_files = []
     for ext in ["*.xlsx", "*.csv"]:
         for p in DADOS_LOCAIS_DIR.glob(ext):
@@ -72,17 +76,62 @@ def find_data_file():
         print(f"❌ Nenhum arquivo .xlsx ou .csv válido encontrado em '{DADOS_LOCAIS_DIR}'.")
         sys.exit(1)
 
-    # Ordenar por data de modificação mais recente (mtime)
-    all_files.sort(key=lambda x: x[0].stat().st_mtime, reverse=True)
-    newest_file, file_type = all_files[0]
+    # Ordenar por data de modificação (mais antigos primeiro para que planilhas mais recentes se sobressaiam se houver SKU duplicado)
+    all_files.sort(key=lambda x: x[0].stat().st_mtime)
+    return all_files
 
-    mtime_str = datetime.fromtimestamp(newest_file.stat().st_mtime).strftime("%d/%m/%Y %H:%M:%S")
-    print(f"📌 Selecionado a planilha mais recente: {newest_file.name} (Modificado em: {mtime_str})")
 
-    if len(all_files) > 1:
-        print(f"ℹ️ {len(all_files) - 1} arquivo(s) antigo(s) na pasta dados-locais/ foram ignorados automaticamente.")
+def main():
+    print("=== Antigravity UpSeller ERP Catalog Encryptor ===")
+    data_files = get_all_data_files()
+    print(f"📁 Encontrada(s) {len(data_files)} planilha(s) para combinar em 'dados-locais/':\n")
 
-    return newest_file, file_type
+    all_products_by_sku = {}
+    total_raw_count = 0
+
+    for idx, (filepath, file_type) in enumerate(data_files, 1):
+        mtime_str = datetime.fromtimestamp(filepath.stat().st_mtime).strftime("%d/%m/%Y %H:%M:%S")
+        print(f" [{idx}/{len(data_files)}] 📖 Lendo: {filepath.name} (Modificado em: {mtime_str})")
+
+        try:
+            rows = load_rows_from_file(filepath, file_type)
+            products = map_products(rows, filepath)
+            total_raw_count += len(products)
+
+            for prod in products:
+                sku_val = (prod.get("sku") or "").strip().lower()
+                if sku_val:
+                    all_products_by_sku[sku_val] = prod
+                else:
+                    name_val = (prod.get("nome") or "").strip().lower()
+                    all_products_by_sku[name_val] = prod
+
+            print(f"     ✅ +{len(products)} produto(s) extraído(s) deste arquivo.\n")
+        except Exception as err:
+            print(f"     ❌ Erro ao ler a planilha '{filepath.name}': {err}\n")
+
+    final_products = list(all_products_by_sku.values())
+
+    if not final_products:
+        print("❌ Nenhum produto válido encontrado nas planilhas.")
+        sys.exit(1)
+
+    print(f"📦 TOTAL COMBINADO: {len(final_products)} produtos únicos unificados a partir das {len(data_files)} planilhas.")
+
+    passphrase = get_or_create_passphrase()
+
+    encrypted_data = encrypt_catalog(final_products, passphrase)
+
+    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
+        json.dump(encrypted_data, f, indent=2)
+
+    print(f"\n🎉 Catálogo criptografado salvo com sucesso em: {OUTPUT_PATH}")
+
+
+if __name__ == "__main__":
+    main()
+
 
 
 def parse_bool(val):
@@ -290,28 +339,6 @@ def get_or_create_passphrase():
     return passphrase
 
 
-def main():
-    print("=== Antigravity UpSeller ERP Catalog Encryptor ===")
-    filepath, file_type = find_data_file()
-    print(f"📖 Lendo arquivo de dados: {filepath.name} ({file_type.upper()})")
-
-    rows = load_rows_from_file(filepath, file_type)
-    products = map_products(rows, filepath)
-
-    if not products:
-        print("❌ Nenhum produto válido encontrado na planilha.")
-        sys.exit(1)
-
-    passphrase = get_or_create_passphrase()
-
-    encrypted_data = encrypt_catalog(products, passphrase)
-
-    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
-        json.dump(encrypted_data, f, indent=2)
-
-    print(f"\n🎉 Catálogo criptografado salvo com sucesso em: {OUTPUT_PATH}")
-
-
 if __name__ == "__main__":
     main()
+
